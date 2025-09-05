@@ -15,24 +15,53 @@
 // ============================================================================
 
 // Inclusão das bibliotecas padrão necessárias para entrada/saída, alocação de memória, manipulação de strings e tempo.
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 // --- Constantes Globais ---
 // Definem valores fixos para o número de territórios, missões e tamanho máximo de strings, facilitando a manutenção.
 
+// Definição do número máximo de territórios
+#define MAX_TERRITORIOS 5
+
 // --- Estrutura de Dados ---
 // Define a estrutura para um território, contendo seu nome, a cor do exército que o domina e o número de tropas.
+// Definição da Estrutura do Território do Jogo
+
+// Definindo o nome do território, a cor predominante e a quantidade de tropas no território
+struct Territorio {
+    char nome[30]; // Nome do território
+    char cor[10]; // Cor dominante do território
+    int tropas; // Número de tropas no território
+};
+
+// Definição da quantidade máxima de territórios (países)
+struct Territorio Pais[MAX_TERRITORIOS];
 
 // --- Protótipos das Funções ---
 // Declarações antecipadas de todas as funções que serão usadas no programa, organizadas por categoria.
 // Funções de setup e gerenciamento de memória:
 // Funções de interface com o usuário:
+void inicializarTerritorios(); // Função de inicialização (cadastro) dos territórios
+
 // Funções de lógica principal do jogo:
 // Função utilitária:
+void limparBufferEntrada(); // Função para limpar o buffer de entrada
 
 // --- Função Principal (main) ---
 // Função principal que orquestra o fluxo do jogo, chamando as outras funções em ordem.
 int main() {
-    // 1. Configuração Inicial (Setup):
+    // 1. Configuração Inicial
+    printf("========================================\n");
+    printf("======       WAR ESTRUTURADO      ======\n");
+    printf("========================================\n\n");
+
+    // Cadastro dos territórios
+    inicializarTerritorios();
+
+    //(Setup):
     // - Define o locale para português.
     // - Inicializa a semente para geração de números aleatórios com base no tempo atual.
     // - Aloca a memória para o mapa do mundo e verifica se a alocação foi bem-sucedida.
@@ -63,6 +92,39 @@ int main() {
 // inicializarTerritorios():
 // Preenche os dados iniciais de cada território no mapa (nome, cor do exército, número de tropas).
 // Esta função modifica o mapa passado por referência (ponteiro).
+void inicializarTerritorios(){
+    // Definição da função para cadastro dos territórios
+    // Entrada dos dados de cada território
+    printf("+-------------------------------+\n");
+    printf("|   CADASTRO DOS %d TERRITÓRIOS  |\n", MAX_TERRITORIOS);
+    printf("+-------------------------------+");
+
+    for(int i=0; i < MAX_TERRITORIOS; i++){
+        printf("\n--- Território no. %d ---\n", i + 1);
+        printf("Entre com o nome do território            : ");
+        scanf("%s", &Pais[i].nome);
+        limparBufferEntrada();
+        printf("Entre com a cor do território             : ");
+        scanf("%s", &Pais[i].cor);
+        limparBufferEntrada();
+        printf("Entre com o número de tropas do território: ");
+        scanf("%d", &Pais[i].tropas);
+        limparBufferEntrada();
+        // printf("\n\n");
+    }
+
+    // Listagem dos territórios criados
+    printf("\n\n+-------------------------------+\n");
+    printf("|   LISTAGEM DOS %d TERRITÓRIOS  |\n", MAX_TERRITORIOS);
+    printf("+-------------------------------+");
+
+    for(int i=0; i < MAX_TERRITORIOS; i++){
+        printf("\n--- Território no. %d ---\n", i + 1);
+        printf("Nome  : %s\n", Pais[i].nome);
+        printf("Cor   : %s\n", Pais[i].cor);
+        printf("Tropas: %d\n", Pais[i].tropas);
+    }
+}
 
 // liberarMemoria():
 // Libera a memória previamente alocada para o mapa usando free.
@@ -96,3 +158,7 @@ int main() {
 
 // limparBufferEntrada():
 // Função utilitária para limpar o buffer de entrada do teclado (stdin), evitando problemas com leituras consecutivas de scanf e getchar.
+void limparBufferEntrada(){
+    int c;
+    while((c = getchar()) != '\n' && c != EOF);
+}
