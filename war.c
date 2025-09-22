@@ -23,9 +23,9 @@
 // --- Constantes Globais ---
 // Definem valores fixos para o número de territórios, missões e tamanho máximo de strings, facilitando a manutenção.
 #define MAX_TERRITORIOS 5  // Definição do número máximo de países
-#define MAX_MISSOES 5      // Definição do número máximo de missões
-#define MAX_JOGADORES 3   // Definição do número máximo de jogadores
-#define TAM_STRING 30     // Definição do tamanho máximo das strings
+#define MAX_MISSOES 9      // Definição do número máximo de missões
+#define MAX_JOGADORES 3    // Definição do número máximo de jogadores
+#define TAM_STRING 100     // Definição do tamanho máximo das strings (aumentado para evitar erro de inicialização)
 
 // Define o vetor de cores disponíveis para os jogadores
 const char *cores[] = {"Vermelho", "Azul", "Verde", "Amarelo", "Preto", "Branco"};
@@ -38,8 +38,8 @@ const char *cores[] = {"Vermelho", "Azul", "Verde", "Amarelo", "Preto", "Branco"
 // definindo o nome, a cor predominante e a quantidade de tropas do território
 struct Territorio {
     char nome[TAM_STRING]; // Nome do território
-    char cor[10]; // Cor dominante do território
-    int tropas; // Número de tropas no território
+    char cor[10];          // Cor dominante do território
+    int tropas;            // Número de tropas no território
 };
 
 // Definição do vetor País, para os países, do tipo struct Territorio
@@ -48,54 +48,57 @@ struct Territorio *Pais;
 // Definição da estrutura para os jogadores
 // definindo a cor do exército e a missão secreta do jogador
 struct Jogador {
-    char cor[10]; // Cor do exército do jogador
-    char missao[TAM_STRING]; // Missão secreta do jogador
+    char cor[10];       // Cor do exército do jogador
+    int missaoCumprida; // 1 - Sim e 0 - Não
+    int missao;         // Código da missão secreta do jogador
 };
 
-// Definição do vetor Jogaador, paraa os jogadores, do tipo struct Jogador
+// Definição do vetor Jogadores, para os jogadores, do tipo struct Jogador
 struct Jogador *Jogadores;
 
 // Definição da estrutura para as missões
-// definindo o nome, o cumprimento e a descrição da missão
+// definindo o nome, a descrição da missão
 struct Missao {
-    int codigo; // Número da missão
-    int cumprida; // 1 - Sim e 0 - Não
+    int codigo;                 // Número da missão
     char descricao[TAM_STRING]; // Descrição da missão
 };
 
-// Definiçãoa do vetor Missões, para as missões, do tipo struct Missao
-// struct Missao *Missoes;
+// Definição do vetor Missões, para as missões, do tipo struct Missao
 
 // Definição das missões disponíveis para o jogo
 const struct Missao Missoes[] = {
-    {1, 0, "Destruir o exército Branco. Caso não exista ou é sua própria cor, conquistar 5 territórios"},
-    {2, 0, "Destruir o exército Preto. Caso não exista ou é sua própria cor, conquistar 5 territórios"},
-    {3, 0, "Destruir o exército Verde. Caso não exista ou é sua própria cor, conquistar 5 territórios"},
-    {4, 0, "Destruir o exército Azul. Caso não exista ou é sua própria cor, conquistar 5 territórios"},
-    {5, 0, "Destruir o exército Amarelo. Caso não exista ou é sua própria cor, conquistar 5 territórios"},
-    {6, 0, "Destruir o exército Vermelho. Caso não exista ou é sua própria cor, conquistar 5 territórios"},
-    {7, 0, "Conquistar 3 territórios"},
-    {8, 0, "Conquistar 4 territórios"},
-    {9, 0, "Conquistar 5 territórios"}
+    {0, "Destruir o exército Branco. Caso não exista ou é sua própria cor, conquistar 5 territórios"},
+    {1, "Destruir o exército Preto. Caso não exista ou é sua própria cor, conquistar 5 territórios"},
+    {2, "Destruir o exército Verde. Caso não exista ou é sua própria cor, conquistar 5 territórios"},
+    {3, "Destruir o exército Azul. Caso não exista ou é sua própria cor, conquistar 5 territórios"},
+    {4, "Destruir o exército Amarelo. Caso não exista ou é sua própria cor, conquistar 5 territórios"},
+    {5, "Destruir o exército Vermelho. Caso não exista ou é sua própria cor, conquistar 5 territórios"},
+    {6, "Conquistar 3 territórios"},
+    {7, "Conquistar 4 territórios"},
+    {8, "Conquistar 5 territórios"}
 };
 
 // --- Protótipos das Funções ---
 // Declarações antecipadas de todas as funções que serão usadas no programa, organizadas por categoria.
 // Funções de setup e gerenciamento de memória:
-struct Territorio *alocarMemoriaMapa(); // Função para alocar dinamicamente o mapa do mundo
-void liberarMemoria(); // Função para liberar a memória alocada para o mapa
+struct Territorio *alocarMemoriaMapa();   // Função para alocar dinamicamente o mapa do mundo
+struct Jogador *alocarMemoriaJogadores(); // Função para alocar dinamicamente os jogadores
+void liberarMemoria();                    // Função para liberar a memória alocada para o mapa
 
 // Funções de interface com o usuário:
-void cadastroTerritorios(); // Função de inicialização (cadastro) dos países
-void atacar(struct Territorio* ataque, struct Territorio* defesa); // Função para realizar um ataque entre dois países
-void ordenarDados(int* dados, int n); // Função auxiliar para ordenar os dados
+void cadastroTerritorios();               // Função de inicialização (cadastro) dos países
+void cadastroJogadores(struct Jogador *Jogadores, const struct Missao *Missoes); // Função de inicialização (cadastro) dos jogadores
+void atacar(struct Territorio* ataque, struct Territorio* defesa, struct Jogador *Jogador, const struct Missao *Missoes); // Função para realizar um ataque entre dois países
+void ordenarDados(int* dados, int n);     // Função auxiliar para ordenar os dados
 void mostrarMapa(const struct Territorio* mapa, int totalTerritorios); // Função para mostrar o mapa atual
-void definirAtaqueDefesa(struct Territorio *paisAtaque, struct Territorio *paisDefesa); // Função para definir os países de ataque e defesa
-void exibirMenuPrincipal(); // Função para exibir o menu principal
+void definirAtaqueDefesa(struct Territorio *paisAtaque, struct Territorio *paisDefesa, const char *corJogador); // Função para definir os países de ataque e defesa
+struct Territorio *buscarTerritorioPorNome(const char *nome); // Função para buscar um território pelo nome
+void exibirMenuPrincipal(int indiceJogador);               // Função para exibir o menu principal
+void visualizarMissao(struct Jogador *jogador, const struct Missao *missoes); // Função para visualizar a missão do jogador
 
 // Funções de lógica principal do jogo:
 // Função utilitária:
-void limparBufferEntrada(); // Função para limpar o buffer de entrada
+void limparBufferEntrada();               // Função para limpar o buffer de entrada
 
 // --- Função Principal (main) ---
 // Função principal que orquestra o fluxo do jogo, chamando as outras funções em ordem.
@@ -104,16 +107,14 @@ int main() {
     // - Define o locale para português.
     // - Inicializa a semente para geração de números aleatórios com base no tempo atual.
 
-    //Aloca a memória para o mapa do mundo e verifica se a alocação foi bem-sucedida.
+    // Aloca a memória para o mapa do mundo e verifica se a alocação foi bem-sucedida.
     Pais = alocarMemoriaMapa();
 
     if (Pais == NULL){
         printf("Erro na alocação de memória para o mapa.\n");
+        liberarMemoria();
         return 1;
-    }
-
-    // - Define a cor do jogador e sorteia sua missão secreta.
-
+    }    
 
     // 1. Configuração Inicial
     printf("========================================\n");
@@ -123,6 +124,18 @@ int main() {
     // Cadastro dos territórios
     // Preenche os territórios com seus dados iniciais (tropas, donos, etc.).
     cadastroTerritorios();
+    
+    // Cadastro dos jogadores
+    // Define a cor do jogador e sorteia sua missão secreta.
+    Jogadores = alocarMemoriaJogadores();
+
+    if (Jogadores == NULL) {
+        printf("Erro na alocação de memória para os jogadores.\n");
+        liberarMemoria();
+        return 1;
+    }
+
+    cadastroJogadores(Jogadores, Missoes);
 
     // 2. Laço Principal do Jogo (Game Loop):
     // - Roda em um loop 'do-while' que continua até o jogador sair (opção 0) ou vencer.
@@ -135,10 +148,11 @@ int main() {
 
     // Variável de opção do menu
     int opcao;
+    int indiceJogador = 0; // Índice do jogador atual (para múltiplos jogadores)
 
     do {
         // Exibe o menu principal
-        exibirMenuPrincipal();
+        exibirMenuPrincipal(indiceJogador);
 
         // Solicita a escolha do jogador
         printf("Escolha uma opcao: ");
@@ -155,10 +169,16 @@ int main() {
                 struct Territorio *paisAtaque;
                 struct Territorio *paisDefesa;
 
-                definirAtaqueDefesa(paisAtaque, paisDefesa);
+                definirAtaqueDefesa(paisAtaque, paisDefesa, Jogadores[indiceJogador].cor);
 
                 // Chama a função de ataque
-                atacar(paisAtaque, paisDefesa);
+                atacar(paisAtaque, paisDefesa, &Jogadores[indiceJogador], Missoes);
+
+                // Verifica se a missão foi cumprida
+                if (Jogadores[indiceJogador].missaoCumprida) {
+                    printf("Parabéns! Você cumpriu sua missão e venceu o jogo!\n");                    
+                    opcao = 0; // Sai do jogo
+                }
 
                 // Mostra o mapa após o ataque
                 mostrarMapa(Pais, MAX_TERRITORIOS);
@@ -166,8 +186,8 @@ int main() {
                 break;
 
             case 2:
-                // Verifica se a missão foi cumprida
-                // Informa o jogador sobre o status da missão
+                // Visualiza o jogador sobre o status da missão
+                visualizarMissao(&Jogadores[indiceJogador], Missoes);
                 break;
 
             case 0:
@@ -212,27 +232,19 @@ struct Jogador *alocarMemoriaJogadores() {
     return ptr;
 }
 
-// /**
-//  * @brief Função para alocar memória para as missões
-//  * @note Aloca dinamicamente a memória para o vetor de missões usando calloc
-//  * @return Ponteiro para o array de missões alocado
-//  */
-// struct Missao *alocarMemoriaMissoes() {
-//     // Aloca dinamicamente a memória para o vetor de missões usando calloc
-//     struct Missao *ptr = (struct Missao *) calloc(MAX_MISSOES, sizeof(struct Missao));
-//     // Retorna o ponteiro para a memória alocada ou NULL em caso de falha
-//     return ptr;
-// }
-
 /**
  * @brief Função para cadastrar os jogadores
  * @note Preenche os dados iniciais de cada jogador (cor do exército, missão secreta).
  */
 void cadastroJogadores(struct Jogador *Jogadores, const struct Missao *Missoes){
-    // Definição da função para cadastro dos jogadores
+    // Define o total de missões disponíveis
+    // int totalMissoes = sizeof(*Missoes) / sizeof(*Missoes[0]);
+    // Define o número total de cores
+    int totalCores = sizeof(cores) / sizeof(cores[0]);
 
     // Pergunta pelo número de jogadores
     int numJogadores;
+
     do {
         printf("Digite o número de jogadores (1 a %d): ", MAX_JOGADORES);
         scanf("%d", &numJogadores);
@@ -251,46 +263,71 @@ void cadastroJogadores(struct Jogador *Jogadores, const struct Missao *Missoes){
         limparBufferEntrada();
         // Sorteia uma missão aleatória para o jogador
         int missaoSorteada = rand() % MAX_MISSOES;
-        strcpy(Jogadores[i].missao, Missoes[missaoSorteada].codigo);
-        printf("Missão sorteada: %s\n", Jogadores[i].missao);
+
+        // Verificar o tipo de missão e atribuir corretamente
+        // Caso a missão seja de destruir um exército inimigo (0 a 5), verifica se o exército existe e não é da mesma cor do jogador
+        if (missaoSorteada >= 0 && missaoSorteada <= totalCores - 1) {
+            for (int j = 0; j < MAX_JOGADORES; j++) {
+                if (strcmp(Jogadores[j].cor, Missoes[missaoSorteada].descricao + 17) == 0 && j != i) { // +17 para pular "Destruir o exército "
+                    missaoSorteada = sizeof(Missoes) - 1; // Atribui a missão de conquistar 5 territórios
+                    break;
+                }
+            }
+        }
+
+        // Atribui a missão sorteada ao jogador
+        Jogadores[i].missao = Missoes[missaoSorteada].codigo;
+        Jogadores[i].missaoCumprida = 0; // Inicializa como não cumprida
+
+        printf("Missão sorteada: %d -> %s\n", Jogadores[i].missao, Missoes[missaoSorteada].descricao);
     }
+}
+
 /**
- * @brief Função para definir o nome dos países ataaque e defesa
+ * @brief Função para definir o nome dos países ataque e defesa
  */
-void definirAtaqueDefesa(struct Territorio *paisAtaque, struct Territorio *paisDefesa){
-    // Definir nomes dos países de atque e defesa
+void definirAtaqueDefesa(struct Territorio *paisAtaque, struct Territorio *paisDefesa, const char *corJogador) {
+    // Definir nomes dos países de ataque e defesa
     char nomePaisAtaque[30];
     char nomePaisDefesa[30];
 
     // Solicita os territórios de origem
-    printf("Digite o nome do país atacante: ");
-    scanf("%s", nomePaisAtaque);
-    limparBufferEntrada();
+    do {
+        printf("Digite o nome do país atacante: ");
+        scanf("%s", nomePaisAtaque);
+        limparBufferEntrada();
+        // Descobrindo a cor do Pais escolhido
+        paisAtaque = buscarTerritorioPorNome(nomePaisAtaque);
+    } while (strcmp(nomePaisAtaque, "") == 0 || strcmp(paisAtaque->cor, corJogador) != 0);
 
-    // Socilita o território a ser atacado
-    printf("Digite o nome do território defensor: ");
-    scanf("%s", nomePaisDefesa);
-    limparBufferEntrada();
+    // Solicita o território a ser atacado
+    do {
+        printf("Digite o nome do território defensor: ");
+        scanf("%s", nomePaisDefesa);
+        limparBufferEntrada();
+        // Descobrindo a cor do Pais escolhido
+        paisDefesa = buscarTerritorioPorNome(nomePaisDefesa);
+    } while (strcmp(nomePaisDefesa, "") == 0 || strcmp(paisDefesa->cor, corJogador) == 0);
+}
 
-    for(int i=0; i < MAX_TERRITORIOS; i++){
-        if (strcmp(Pais[i].nome, nomePaisAtaque) == 0){
-            paisAtaque = &Pais[i];
-        } else if (strcmp(Pais[i].nome, nomePaisDefesa) == 0){
-            paisDefesa = &Pais[i];
+/** 
+ * @brief Função para retornar o pais pelo nome
+ * @param nome Nome do país a ser buscado
+ * @return Ponteiro para o território encontrado ou NULL se não encontrado
+ */
+struct Territorio *buscarTerritorioPorNome(const char *nome) {
+    for (int i = 0; i < MAX_TERRITORIOS; i++) {
+        if (strcmp(Pais[i].nome, nome) == 0) {
+            return &Pais[i];
         }
     }
-
-    // Verifica se as entradas dos países foram corretas
-    if (strcmp(paisAtaque->nome, nomePaisAtaque) != 0 && strcmp(paisDefesa->nome, nomePaisDefesa) != 0){
-        printf("Território não encontrado. Tente novamente.\n");
-    }
+    return NULL;
 }
 
 /**
  * @brief Função para alocar dinamicamente o mapa do mundo
  * @return Ponteiro para o array de territórios alocado
  */
-
 struct Territorio *alocarMemoriaMapa() {
     // Aloca dinamicamente a memória para o vetor de territórios usando calloc
     struct Territorio *ptr = (struct Territorio *) calloc(MAX_TERRITORIOS, sizeof(struct Territorio));
@@ -349,6 +386,7 @@ void cadastroTerritorios(){
  */
 void liberarMemoria(){
     free(Pais);
+    free(Jogadores);
     printf("Memória liberada com sucesso.\n");
 }
 
@@ -356,12 +394,12 @@ void liberarMemoria(){
  * @brief Imprime na tela o menu de ações disponíveis para o jogador.
  * @note Esta função não modifica nenhum dado, apenas exibe informações.
  */
-void exibirMenuPrincipal(){
+void exibirMenuPrincipal(int indiceJogador){
     printf("\n\n--------------------------\n");
-    printf("------- MENU AÇÕES -------\n");
+    printf("------- MENU AÇÕES - JOGADOR: %d ------\n", indiceJogador + 1);
     printf("--------------------------\n");
     printf("1 - Atacar\n");
-    // printf("2 - Verificar vitória\n");
+    printf("2 - Verificar Missão\n");
     printf("0 - Sair\n\n");
 }
 
@@ -374,7 +412,7 @@ void exibirMenuPrincipal(){
 * @note Se um território for conquistado, atualiza seu dono e move uma tropa.
 * @note implemente void atacar(Territorio* atacante, Territorio* defensor) que utilize rand() para simular um dado de ataque (1 a 6) para cada lado.
 */
-void atacar(struct Territorio* ataque, struct Territorio* defesa){
+void atacar(struct Territorio* ataque, struct Territorio* defesa, struct Jogador *Jogador, const struct Missao *Missoes){
     // Loop de ataque
     printf("\n--- Início do Ataque ---\n");
     char continuar = 's';
@@ -472,22 +510,49 @@ void atacar(struct Territorio* ataque, struct Territorio* defesa){
     // Verifica o vencedor
     if (defesa->tropas == 0) {
         printf("\nTerritório %s conquistado!\n", defesa->nome);
-        // Atualiza o dono do território conquistado
-        strcpy(defesa->cor, ataque->cor);
-        // Pergunta quantas tropas o ataque quer mover (1 a número de tropas - 1)
-        int tropasMover;
+        // Verificar se a missão do jogador foi cumprida
+        int totalCores = sizeof(cores) / sizeof(cores[0]);
+        
+        if (Jogador->missao >= 0 && Jogador->missao <= totalCores - 1) {
+            // Missão de destruir um exército inimigo
+            const char *corInimiga = Missoes[Jogador->missao].descricao + 17; // Pula "Destruir o exército "
+            if (strcmp(defesa->cor, corInimiga) == 0) {
+                Jogador->missaoCumprida = 1; // Missão cumprida
+            }
+        } else {
+            // Missão de conquistar um número específico de territórios
+            int territoriosConquistados = 0;
+            int territoriosNecessarios = Jogador->missao - 2; // Missão 6 -> 3, Missão 7 -> 4, Missão 8 -> 5
 
-        // Cria um loop até o número de troas for correto
-        do {
-            printf("Quantas tropas mover para o território conquistado? (1 a %d): ", (ataque->tropas - 1 > 3 ? 3 : ataque->tropas - 1));
-            scanf("%d", &tropasMover);
-            limparBufferEntrada();
-        } while (tropasMover < 1 || tropasMover >= ataque->tropas);
+            for (int i = 0; i < MAX_TERRITORIOS; i++) {
+                if (strcmp(Pais[i].cor, Jogador->cor) == 0) {
+                    territoriosConquistados++;
+                }
+            }
 
-        // Move as tropas
-        ataque->tropas -= tropasMover;
-        defesa->tropas += tropasMover;
-        printf("%d tropas movidas para o território %s.\n", tropasMover, defesa->nome);
+            if (territoriosConquistados >= territoriosNecessarios) {
+                Jogador->missaoCumprida = 1; // Missão cumprida
+            }
+        }
+
+        if (!Jogador->missaoCumprida) {
+            // Atualiza o dono do território conquistado
+            strcpy(defesa->cor, ataque->cor);
+            // Pergunta quantas tropas o ataque quer mover (1 a número de tropas - 1)
+            int tropasMover;
+
+            // Cria um loop até o número de troas for correto
+            do {
+                printf("Quantas tropas mover para o território conquistado? (1 a %d): ", (ataque->tropas - 1 > 3 ? 3 : ataque->tropas - 1));
+                scanf("%d", &tropasMover);
+                limparBufferEntrada();
+            } while (tropasMover < 1 || tropasMover >= ataque->tropas);
+
+            // Move as tropas
+            ataque->tropas -= tropasMover;
+            defesa->tropas += tropasMover;
+            printf("%d tropas movidas para o território %s.\n", tropasMover, defesa->nome);
+        }
     } else {
         printf("Ataque falhou! Território %s permanece com %d tropas.\n", defesa->nome, defesa->tropas);
     }
@@ -514,19 +579,17 @@ void ordenarDados(int* dados, int n) {
     }
 }
 
-/**
- * @brief função que sorteia e retorna um ID de missão aleatório para o jogador.
- * @note sorteia uma missão e copia para a variável de missão do jogador usando strcpy.
+/** 
+ * @brief Função para visualizar a missão do jogador
+ * @param jogador Ponteiro para o jogador cuja missão será visualizada
+ * @param missoes Ponteiro para o array de missões disponíveis
  */
-void sortearMissao(char* destino, char* missoes[], int totalMissoes) {
-   int indice = rand() % totalMissoes;
-   strcpy(destino, missoes[indice]);
+void visualizarMissao(struct Jogador *jogador, const struct Missao *missoes) {
+    printf("\n--- Missão do Jogador ---\n");
+    printf("Cor do Exército: %s\n", jogador->cor);
+    printf("Missão: %s\n", missoes[jogador->missao].descricao);
+    printf("Status: %s\n", jogador->missaoCumprida ? "Cumprida" : "Não Cumprida");
 }
-
-// verificarVitoria():
-// Verifica se o jogador cumpriu os requisitos de sua missão atual.
-// Implementa a lógica para cada tipo de missão (destruir um exército ou conquistar um número de territórios).
-// Retorna 1 (verdadeiro) se a missão foi cumprida, e 0 (falso) caso contrário.
 
 /**
  * @brief Função para limpar o buffer de entrada
