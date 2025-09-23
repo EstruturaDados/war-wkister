@@ -86,12 +86,12 @@ const struct Missao Missoes[] = {
 // Declarações antecipadas de todas as funções que serão usadas no programa, organizadas por categoria.
 // Funções de setup e gerenciamento de memória:
 struct Territorio *alocarMemoriaMapa();   // Função para alocar dinamicamente o mapa do mundo
-struct Jogador *alocarMemoriaJogadores(int numJogadores); // Função para alocar dinamicamente os jogadores
+struct Jogador *alocarMemoriaJogadores(); // Função para alocar dinamicamente os jogadores
 void liberarMemoria();                    // Função para liberar a memória alocada para o mapa
 
 // Funções de interface com o usuário:
-void cadastroTerritorios(struct Territorio *Pais, struct Jogador *Jogadores, int totalJogadores);               // Função de inicialização (cadastro) dos países
-void cadastroJogadores(struct Jogador *Jogadores, const struct Missao *Missoes, int totalMissoes, int *numJogadores); // Função de inicialização (cadastro) dos jogadores
+void cadastroTerritorios(struct Territorio **Pais, struct Jogador **Jogadores, int totalJogadores);               // Função de inicialização (cadastro) dos países
+void cadastroJogadores(struct Jogador **Jogadores, const struct Missao *Missoes, int totalMissoes, int *numJogadores); // Função de inicialização (cadastro) dos jogadores
 void atacar(struct Territorio* ataque, struct Territorio* defesa, struct Jogador *Jogador, const struct Missao *Missoes); // Função para realizar um ataque entre dois países
 void ordenarDados(int* dados, int n);     // Função auxiliar para ordenar os dados
 void mostrarMapa(const struct Territorio* mapa, int totalTerritorios); // Função para mostrar o mapa atual
@@ -127,37 +127,21 @@ int main() {
     printf("========================================\n\n");
 
     // Cadastro dos jogadores
-    // Define a cor do jogador e sorteia sua missão secreta.
-    // Pergunta o número de jogadores antes de alocar
-    do {
-        printf("Digite o número de jogadores (1 a %d): ", MAX_JOGADORES);
-        scanf("%d", &numJogadores);
-        limparBufferEntrada();
-    } while (numJogadores < 1 || numJogadores > MAX_JOGADORES);
+    // Aloca a memória para os jogadores
+    Jogadores = alocarMemoriaJogadores();
 
-    Jogadores = alocarMemoriaJogadores(numJogadores);
     if (Jogadores == NULL) {
         printf("Erro na alocação de memória para os jogadores.\n");
         liberarMemoria();
         return 1;
     }
 
-    cadastroJogadores(Jogadores, Missoes, TOTAL_MISSOES, &numJogadores);
-
-    // #define TOTAL_JOGADORES (sizeof(Jogadores) / sizeof(Jogadores[0])) // Calcula o número de jogadores disponíveis
+    // Define a cor do jogador e sorteia sua missão secreta.
+    cadastroJogadores(&Jogadores, Missoes, TOTAL_MISSOES, &numJogadores);
 
     // Cadastro dos territórios
     // Preenche os territórios com seus dados iniciais (tropas, donos, etc.).
     cadastroTerritorios(&Pais, &Jogadores, numJogadores);
-
-    // 2. Laço Principal do Jogo (Game Loop):
-    // - Roda em um loop 'do-while' que continua até o jogador sair (opção 0) ou vencer.
-    // - A cada iteração, exibe o mapa, a missão e o menu de ações.
-    // - Lê a escolha do jogador e usa um 'switch' para chamar a função apropriada:
-    //   - Opção 1: Inicia a fase de ataque.
-    //   - Opção 2: Verifica se a condição de vitória foi alcançada e informa o jogador.
-    //   - Opção 0: Encerra o jogo.
-    // - Pausa a execução para que o jogador possa ler os resultados antes da próxima rodada.
 
     // Variável de opção do menu
     int opcao;
@@ -189,18 +173,26 @@ int main() {
 
                 // Verifica se a missão foi cumprida
                 if (Jogadores[indiceJogador].missaoCumprida) {
-                    printf("Parabéns! Você cumpriu sua missão e venceu o jogo!\n");                    
+                    printf("Parabéns! Você cumpriu sua missão e venceu o jogo!\n");
+                    visualizarMissao(Jogadores, indiceJogador, Missoes);
                     opcao = 0; // Sai do jogo
                 }
-
-                // Mostra o mapa após o ataque
-                mostrarMapa(Pais, MAX_TERRITORIOS);
-
                 break;
 
             case 2:
+                // Mostra o mapa atual
+                mostrarMapa(Pais, MAX_TERRITORIOS);
+                break;
+
+            case 3:
                 // Visualiza o jogador sobre o status da missão
                 visualizarMissao(Jogadores, indiceJogador, Missoes);
+                break;
+
+            case 4:
+                // Termina o ataque
+                printf("Ataque terminado.\n");
+                indiceJogador = (indiceJogador + 1) % numJogadores; // Passa para o próximo jogador
                 break;
 
             case 0:
@@ -215,7 +207,7 @@ int main() {
 
         // Pausa para que o jogador possa ler os resultados antes da próxima rodada
         if (opcao != 0) {
-            printf("Pressione Enter para continuar...");
+            printf("\nPressione Enter para continuar...");
             getchar();
         }
 
@@ -238,26 +230,29 @@ int main() {
  * @note Aloca dinamicamente a memória para o vetor de jogadores usando calloc
  * @return Ponteiro para o array de jogadores alocado
  */
-struct Jogador *alocarMemoriaJogadores(int numJogadores) {
+struct Jogador *alocarMemoriaJogadores() {
     // Aloca dinamicamente a memória para o vetor de jogadores usando calloc
-    struct Jogador *ptr = (struct Jogador *) calloc(numJogadores, sizeof(struct Jogador));
+    struct Jogador *ptr = (struct Jogador *) calloc(MAX_JOGADORES, sizeof(struct Jogador));
     // Retorna o ponteiro para a memória alocada ou NULL em caso de falha
     return ptr;
 }
 
 /**
  * @brief Função para cadastrar os jogadores
- * @note Preenche os dados iniciais de cada jogador (cor do exército, missão secreta).
+ * @note Preenche os dados iniciais de cada jogador (cor do exército, missão secreta, número de territórios).
+ * @note Esta função modifica o vetor de jogadores passado por referência (ponteiro).
+ * @param Jogadores Ponteiro para o vetor de jogadores a ser preenchido
+ * @param Missoes Ponteiro para o vetor de missões disponíveis
+ * @param totalMissoes Número total de missões disponíveis
+ * @param numJogadores Ponteiro para o número de jogadores a ser definido
  */
-void cadastroJogadores(struct Jogador *Jogadores, const struct Missao *Missoes, int totalMissoes, int *numJogadores){
+void cadastroJogadores(struct Jogador **Jogadores, const struct Missao *Missoes, int totalMissoes, int *numJogadores){
     // Define o número total de cores
     int totalCores = sizeof(cores) / sizeof(cores[0]);
     int coresDisponiveis[MAX_JOGADORES > 6 ? MAX_JOGADORES : 6];
     for (int i = 0; i < totalCores; i++) coresDisponiveis[i] = 1; // 1 = disponível
 
-        // Pergunta pelo número de jogadores
-        // int numJogadores;
-
+    // Pergunta o número de jogadores antes de alocar
     do {
         printf("Digite o número de jogadores (1 a %d): ", MAX_JOGADORES);
         scanf("%d", numJogadores);
@@ -271,26 +266,53 @@ void cadastroJogadores(struct Jogador *Jogadores, const struct Missao *Missoes, 
 
     for(int i=0; i < *numJogadores; i++){
         printf("\n--- Jogador no. %d ---\n", i + 1);
-        printf("Cores disponíveis: ");
+        printf("Cores disponíveis          : ");
+        // if (coresDisponiveis[0]) printf("%s", cores[0]);
         for (int c = 0; c < totalCores; c++) {
             if (coresDisponiveis[c]) printf("%s ", cores[c]);
         }
         printf("\nEntre com a cor do exército: ");
         int corValida = 0;
         do {
-            scanf("%s", Jogadores[i].cor);
+            scanf("%s", (*Jogadores)[i].cor);
             limparBufferEntrada();
             for (int c = 0; c < totalCores; c++) {
-                if (coresDisponiveis[c] && strcmp(Jogadores[i].cor, cores[c]) == 0) {
+                if (coresDisponiveis[c] && strcmp((*Jogadores)[i].cor, cores[c]) == 0) {
                     coresDisponiveis[c] = 0;
                     corValida = 1;
                     break;
                 }
             }
             if (!corValida) printf("Cor inválida ou já escolhida. Escolha novamente: ");
-        } while (!corValida);
+        } while (!corValida);            
+    }
+
+    // Define as missões disponíveis
+    int missoesDisponiveis[MAX_MISSOES - 1];
+    for (int j = 0; j < totalMissoes - 1; j++) {
+        missoesDisponiveis[j] = 1; // 1 = disponível, 0 = não disponível
+    }
+
+    int missaoOriginal; // Variável para armazenar a missão original do jogador
+
+    // Define a missão secreta de cada jogador
+    for (int i = 0; i < *numJogadores; i++) {
         // Sorteia uma missão aleatória para o jogador
         int missaoSorteada = rand() % totalMissoes;
+
+        // Guarda a missão sorteada original
+        missaoOriginal = missaoSorteada;
+
+        // Verifica se a missão já foi atribuída a outro jogador
+        if (!missoesDisponiveis[missaoSorteada]) {
+            // Se a missão já foi atribuída, sorteia uma nova
+            do {
+                missaoSorteada = rand() % totalMissoes;
+            } while (!missoesDisponiveis[missaoSorteada]);
+        } else {
+            // Marca a missão como não disponível
+            missoesDisponiveis[missaoSorteada] = 0;
+        }
 
         // Verificar o tipo de missão e atribuir corretamente
         // Caso a missão seja de destruir um exército inimigo (0 a 5), verifica se o exército existe e não é da mesma cor do jogador
@@ -299,9 +321,11 @@ void cadastroJogadores(struct Jogador *Jogadores, const struct Missao *Missoes, 
             // Caso não esteja, atribui a missão de conquistar 5 territórios
             for (int j = 0; j < MAX_JOGADORES; j++) {
                 // Compara a cor do jogador com a cor da missão
-                if (strcmp(Jogadores[j].cor, Missoes[missaoSorteada].cor) == 0){
+                if (strcmp((*Jogadores)[j].cor, Missoes[missaoSorteada].cor) == 0){
                     // Se a cor do próprio jogador for igual à cor da missão
                     if (j == i){
+                        // Disponibiliza a missão novamente
+                        missoesDisponiveis[missaoSorteada] = 1;
                         missaoSorteada = totalMissoes - 1; // Atribui a missão de conquistar 5 territórios
                     }
                     break;
@@ -314,15 +338,20 @@ void cadastroJogadores(struct Jogador *Jogadores, const struct Missao *Missoes, 
         }
 
         // Atribui a missão sorteada ao jogador
-        Jogadores[i].missao = Missoes[missaoSorteada].codigo;
-        Jogadores[i].missaoCumprida = 0; // Inicializa como não cumprida
+        (*Jogadores)[i].missao = Missoes[missaoSorteada].codigo;
+        (*Jogadores)[i].missaoCumprida = 0; // Inicializa como não cumprida
 
-        printf("Missão sorteada: %d -> %s\n", Jogadores[i].missao, Missoes[missaoSorteada].descricao);
+        // Inicializa o número de territórios conquistados
+        (*Jogadores)[i].territorios = 0;
     }
+    
 }
 
 /**
  * @brief Função para definir o nome dos países ataque e defesa
+ * @param paisAtaque Ponteiro para o ponteiro do país atacante
+ * @param paisDefesa Ponteiro para o ponteiro do país defensor
+ * @param corJogador Cor do jogador atual (para validação)
  */
 void definirAtaqueDefesa(struct Territorio **paisAtaque, struct Territorio **paisDefesa, const char *corJogador) {
     // Definir nomes dos países de ataque e defesa
@@ -375,8 +404,11 @@ struct Territorio *alocarMemoriaMapa() {
  * @brief Função para cadastrar os territórios do jogo
  * @note Preenche os dados iniciais de cada território no mapa (nome, cor do exército, número de tropas).
  * @note Esta função modifica o mapa passado por referência (ponteiro).
+ * @param Pais Ponteiro para o vetor de territórios a ser preenchido
+ * @param Jogadores Ponteiro para o vetor de jogadores (para sorteio das cores)
+ * @param totalJogadores Número total de jogadores (para sorteio das cores)
  */
-void cadastroTerritorios(struct Territorio *Pais, struct Jogador *Jogadores, int totalJogadores){
+void cadastroTerritorios(struct Territorio **Pais, struct Jogador **Jogadores, int totalJogadores){
     // Definição da função para cadastro dos territórios
 
     // Nomes e tropas fixos dos países
@@ -458,9 +490,11 @@ void cadastroTerritorios(struct Territorio *Pais, struct Jogador *Jogadores, int
         for (int i = 0; i < MAX_TERRITORIOS; i++) {
             int idx = indices[i];
             int jogadorIdx = i % totalJogadores;
-            strcpy(Pais[idx].nome, nomesPaises[idx]);
-            strcpy(Pais[idx].cor, Jogadores[jogadorIdx].cor);
-            Pais[idx].tropas = tropasIniciais[idx];
+            strcpy((*Pais)[idx].nome, nomesPaises[idx]);
+            strcpy((*Pais)[idx].cor, (*Jogadores)[jogadorIdx].cor);
+            (*Pais)[idx].tropas = tropasIniciais[idx];
+            // Incrementando o número de territórios do jogador
+            (*Jogadores)[jogadorIdx].territorios++;
         }
     } else {
         printf("Os territórios serão cadastrados manualmente.\n");
@@ -468,7 +502,7 @@ void cadastroTerritorios(struct Territorio *Pais, struct Jogador *Jogadores, int
 
     printf("\nCadastro dos territórios concluído!\n");
 
-    mostrarMapa(Pais, MAX_TERRITORIOS);
+    mostrarMapa(*Pais, MAX_TERRITORIOS);
 }
 
 /**
@@ -484,24 +518,29 @@ void liberarMemoria(){
 /**
  * @brief Imprime na tela o menu de ações disponíveis para o jogador.
  * @note Esta função não modifica nenhum dado, apenas exibe informações.
+ * @param indiceJogador Índice do jogador atual (para exibição no menu)
  */
 void exibirMenuPrincipal(int indiceJogador){
-    printf("\n\n--------------------------\n");
-    printf("------- MENU AÇÕES - JOGADOR: %d ------\n", indiceJogador + 1);
-    printf("--------------------------\n");
+    printf("\n\n-----------------------------\n");
+    printf("-- MENU AÇÕES - JOGADOR: %d --\n", indiceJogador + 1);
+    printf("-----------------------------\n");
     printf("1 - Atacar\n");
-    printf("2 - Verificar Missão\n");
+    printf("2 - Ver Mapa\n");
+    printf("3 - Verificar Missão\n");
+    printf("4 - Terminar ataque\n");
+
     printf("0 - Sair\n\n");
 }
-
-// exibirMissao():
-// Exibe a descrição da missão atual do jogador com base no ID da missão sorteada.
 
 /**
 * @brief Executa a lógica de uma batalha entre dois territórios.
 * @note Realiza validações, rola os dados, compara os resultados e atualiza o número de tropas.
 * @note Se um território for conquistado, atualiza seu dono e move uma tropa.
 * @note implemente void atacar(Territorio* atacante, Territorio* defensor) que utilize rand() para simular um dado de ataque (1 a 6) para cada lado.
+* @param ataque Ponteiro para o território atacante
+* @param defesa Ponteiro para o território defensor
+* @param Jogador Ponteiro para o jogador atual (para verificar missão)
+* @param Missoes Ponteiro para o vetor de missões (para verificar missão)
 */
 void atacar(struct Territorio* ataque, struct Territorio* defesa, struct Jogador *Jogador, const struct Missao *Missoes){
     // Loop de ataque
@@ -536,11 +575,9 @@ void atacar(struct Territorio* ataque, struct Territorio* defesa, struct Jogador
         } while (numDadosAtaque < 1 || numDadosAtaque > maxDadosAtaque);
 
         // Rolagem aleatório dos dados do atacante (1 a 6)
-        // if (dadosAtaque) free(dadosAtaque);
         dadosAtaque = (int*) malloc(numDadosAtaque * sizeof(int));
         for (int i = 0; i < numDadosAtaque; i++) {
             dadosAtaque[i] = (rand() % 6) + 1;
-            // printf("Dada de ataque %d: %d\n", i + 1, dadosAtaque[i]);
         }
 
         // Define o número máximo de dados da defesaa (número de tropas a 3)
@@ -555,12 +592,9 @@ void atacar(struct Territorio* ataque, struct Territorio* defesa, struct Jogador
         } while (numDadosDefesa < 1 || numDadosDefesa > maxDadosDefesa);
 
         // Rolagem aleatório dos dados da defesa (1 a 6)
-        // if (dadosDefesa) free(dadosDefesa);
         dadosDefesa = (int*) malloc(numDadosDefesa * sizeof(int));
         for (int i = 0; i < numDadosDefesa; i++) {
-            // dadosDefesa[i] = srand(time(NULL));
             dadosDefesa[i] = (rand() % 6) + 1;
-            // printf("Dada de defesa %d: %d\n", i + 1, dadosDefesa[i]);
         }
 
         // Ordena os dados em ordem decrescente (bubble sort)
@@ -605,6 +639,9 @@ void atacar(struct Territorio* ataque, struct Territorio* defesa, struct Jogador
         printf("\nTerritório %s conquistado!\n", defesa->nome);
         // Atualiza o dono do território conquistado
         strcpy(defesa->cor, ataque->cor);
+
+        // Incrementa o número de territórios do jogador atacante
+        Jogador->territorios++;
             
         // Verificar se a missão do jogador foi cumprida
         int totalCores = sizeof(cores) / sizeof(cores[0]);
@@ -617,16 +654,9 @@ void atacar(struct Territorio* ataque, struct Territorio* defesa, struct Jogador
             }
         } else {
             // Missão de conquistar um número específico de territórios
-            int territoriosConquistados = 0;
             int territoriosNecessarios = Jogador->missao - 3; // Missão 6 -> 3, Missão 7 -> 4, Missão 8 -> 5
-
-            for (int i = 0; i < MAX_TERRITORIOS; i++) {
-                if (strcmp(Pais[i].cor, Jogador->cor) == 0) {
-                    territoriosConquistados++;
-                }
-            }
-
-            if (territoriosConquistados >= territoriosNecessarios) {
+            
+            if (Jogador->territorios >= territoriosNecessarios) {
                 Jogador->missaoCumprida = 1; // Missão cumprida
             }
         }
@@ -677,10 +707,12 @@ void ordenarDados(int* dados, int n) {
  * @brief Função para visualizar a missão do jogador
  * @param jogador Ponteiro para o jogador cuja missão será visualizada
  * @param missoes Ponteiro para o array de missões disponíveis
+ * @param indiceJogador Índice do jogador (para exibição)
  */
 void visualizarMissao(struct Jogador *jogador, int indiceJogador, const struct Missao *missoes) {
     printf("\n--- Missão do Jogador %d---\n", indiceJogador + 1);
     printf("Cor do Exército: %s\n", jogador[indiceJogador].cor);
+    printf("Territórios    : %d\n", jogador[indiceJogador].territorios);
     printf("Missão         : %s\n", missoes[jogador[indiceJogador].missao].descricao);
     printf("Status         : %s\n", jogador[indiceJogador].missaoCumprida ? "Cumprida" : "Não Cumprida");
 }
@@ -701,7 +733,7 @@ void limparBufferEntrada(){
  */
 void mostrarMapa(const struct Territorio* mapa, int totalTerritorios) {
     printf("\n+-----------------------------------------+\n");
-    printf("|               MAPA ATUAL       ;\n");
+    printf("|               MAPA ATUAL               |\n");
     printf("+-----------------------------------------+\n");
     printf("| %-15s | %-10s | %-8s |\n", "Território", "Cor", "Tropas");
     printf("+-----------------------------------------+\n");
