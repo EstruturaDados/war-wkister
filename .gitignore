@@ -1,3 +1,22 @@
+# Arquivos compilados
 war
+*.o
+*.out
+*.exe
+
+# Diretórios de build
+obj/
+bin/
+
+# Diretórios VS Code
 .vscode/launch.json
 .vscode/tasks.json
+
+# Arquivos temporários
+*~
+.*.swp
+.*.swo
+
+# Arquivos de depuração
+core
+vgcore.*
