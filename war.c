@@ -1,18 +1,32 @@
-// ============================================================================
-//         PROJETO WAR ESTRUTURADO - DESAFIO DE CÓDIGO
-// ============================================================================
-//
-// ============================================================================
-//
-// OBJETIVOS:
-// - Modularizar completamente o código em funções especializadas.
-// - Implementar um sistema de missões para um jogador.
-// - Criar uma função para verificar se a missão foi cumprida.
-// - Utilizar passagem por referência (ponteiros) para modificar dados e
-//   passagem por valor/referência constante (const) para apenas ler.
-// - Foco em: Design de software, modularização, const correctness, lógica de jogo.
-//
-// ============================================================================
+/**
+ * @file war.c
+ * @brief PROJETO WAR ESTRUTURADO - DESAFIO DE CÓDIGO
+ * @author Wellington Kister do Nascimento
+ *
+ * @section objectives OBJETIVOS
+ * - Modularizar completamente o código em funções especializadas.
+ * - Implementar um sistema de missões para um jogador.
+ * - Criar uma função para verificar se a missão foi cumprida.
+ * - Utilizar passagem por referência (ponteiros) para modificar dados e
+ *   passagem por valor/referência constante (const) para apenas ler.
+ * - Foco em: Design de software, modularização, const correctness, lógica de jogo.
+ *
+ * @section compilation Compilação
+ * Para compilar este projeto, você pode usar os seguintes comandos make:
+ *
+ * - make all       : Compila o projeto
+ * - make run      : Compila e executa o programa
+ * - make valgrind : Executa com verificação de vazamento de memória
+ * - make debug    : Compila com flags de depuração adicionais
+ * - make clean    : Remove arquivos compilados
+ *
+ * Exemplo de uso:
+ * @code
+ * $ make clean    # Limpa compilações anteriores
+ * $ make         # Compila o projeto
+ * $ make run     # Executa o programa
+ * @endcode
+ */
 
 // Inclusão das bibliotecas padrão necessárias para entrada/saída, alocação de memória, manipulação de strings e tempo.
 #include <stdio.h>
@@ -119,7 +133,7 @@ int main() {
         printf("Erro na alocação de memória para o mapa.\n");
         liberarMemoria();
         return 1;
-    }    
+    }
 
     // 1. Configuração Inicial
     printf("========================================\n");
@@ -284,7 +298,7 @@ void cadastroJogadores(struct Jogador **Jogadores, const struct Missao *Missoes,
                 }
             }
             if (!corValida) printf("Cor inválida ou já escolhida. Escolha novamente: ");
-        } while (!corValida);            
+        } while (!corValida);
     }
 
     // Define as missões disponíveis
@@ -344,7 +358,7 @@ void cadastroJogadores(struct Jogador **Jogadores, const struct Missao *Missoes,
         // Inicializa o número de territórios conquistados
         (*Jogadores)[i].territorios = 0;
     }
-    
+
 }
 
 /**
@@ -375,7 +389,7 @@ void definirAtaqueDefesa(struct Territorio **paisAtaque, struct Territorio **pai
     } while (strcmp(nomePaisDefesa, "") == 0 || *paisDefesa == NULL || strcmp((*paisDefesa)->cor, corJogador) == 0);
 }
 
-/** 
+/**
  * @brief Função para retornar o pais pelo nome
  * @param nome Nome do país a ser buscado
  * @return Ponteiro para o território encontrado ou NULL se não encontrado
@@ -448,7 +462,7 @@ void cadastroTerritorios(struct Territorio **Pais, struct Jogador **Jogadores, i
     //     limparBufferEntrada();
     //     // printf("\n\n");
     // }
-    
+
     // strcpy(Pais[0].nome, "America");
     // int corSorteada = rand() % totalJogadores;
     // strcpy(Pais[0].cor, Jogadores[corSorteada].cor);
@@ -485,7 +499,7 @@ void cadastroTerritorios(struct Territorio **Pais, struct Jogador **Jogadores, i
     limparBufferEntrada();
 
     if (opcao == 's' || opcao == 'S'){
-        printf("Os territórios serão distribuídos aleatoriamente entre os jogadores.\n");        
+        printf("Os territórios serão distribuídos aleatoriamente entre os jogadores.\n");
         // Distribui países embaralhados entre jogadores
         for (int i = 0; i < MAX_TERRITORIOS; i++) {
             int idx = indices[i];
@@ -642,10 +656,10 @@ void atacar(struct Territorio* ataque, struct Territorio* defesa, struct Jogador
 
         // Incrementa o número de territórios do jogador atacante
         Jogador->territorios++;
-            
+
         // Verificar se a missão do jogador foi cumprida
         int totalCores = sizeof(cores) / sizeof(cores[0]);
-        
+
         if (Jogador->missao >= 0 && Jogador->missao <= totalCores - 1) {
             // Missão de destruir um exército inimigo
             const char *corInimiga = Missoes[Jogador->missao].descricao + 17; // Pula "Destruir o exército "
@@ -655,7 +669,7 @@ void atacar(struct Territorio* ataque, struct Territorio* defesa, struct Jogador
         } else {
             // Missão de conquistar um número específico de territórios
             int territoriosNecessarios = Jogador->missao - 3; // Missão 6 -> 3, Missão 7 -> 4, Missão 8 -> 5
-            
+
             if (Jogador->territorios >= territoriosNecessarios) {
                 Jogador->missaoCumprida = 1; // Missão cumprida
             }
@@ -703,7 +717,7 @@ void ordenarDados(int* dados, int n) {
     }
 }
 
-/** 
+/**
  * @brief Função para visualizar a missão do jogador
  * @param jogador Ponteiro para o jogador cuja missão será visualizada
  * @param missoes Ponteiro para o array de missões disponíveis

@@ -1,44 +1,33 @@
-# Makefile para exemplos de Ponteiros - Estrutura de Dados
-# Compilador e flags específicas para ponteiros
+# Makefile para o projeto War
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -g -O0 -Wpointer-arith -Wcast-align
 LDFLAGS =
+
+# Nome do programa
+PROG = war
 
 # Diretórios
 SRCDIR = .
 OBJDIR = obj
 BINDIR = bin
 
-# Encontra todos os arquivos .c recursivamente
-SOURCES = $(shell find $(SRCDIR) -name '*.c')
-OBJECTS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SOURCES:./%=%))
-TARGETS = $(patsubst $(SRCDIR)/%.c,$(BINDIR)/%,$(SOURCES:./%=%))
+# Arquivos fonte
+SOURCES = war.c
+OBJECTS = $(OBJDIR)/war.o
+TARGET = $(BINDIR)/$(PROG)
 
-# Permite compilar um arquivo específico: make file=exemplo.c
-ifeq ($(file),)
-all: dirs $(TARGETS)
-else
-# Permite compilar arquivo em subpasta
-FILE_PATH = $(file)
-FILE_NAME = $(notdir $(FILE_PATH))
-FILE_BASE = $(basename $(FILE_NAME))
-FILE_OBJ = $(OBJDIR)/$(FILE_BASE).o
-FILE_BIN = $(BINDIR)/$(FILE_BASE)
-all: dirs build_file
+# Regra principal
+all: dirs $(TARGET)
 
-# Detecta se o arquivo tem main
-HAS_MAIN := $(shell grep -c 'int main' $(FILE_PATH))
+# Regra para o arquivo objeto
+$(OBJECTS): $(SOURCES)
+	@echo "Compilando $(SOURCES)..."
+	$(CC) $(CFLAGS) -c $< -o $@
 
-build_file:
-ifeq ($(HAS_MAIN),0)
-	@echo "Compilando apenas o objeto de $(FILE_PATH) (sem main)"
-	$(CC) $(CFLAGS) -c $(FILE_PATH) -o $(FILE_OBJ)
-else
-	@echo "Compilando e linkando $(FILE_PATH) (possui main)"
-	$(CC) $(CFLAGS) -c $(FILE_PATH) -o $(FILE_OBJ)
-	$(CC) $(LDFLAGS) $(FILE_OBJ) -o $(FILE_BIN)
-endif
-endif
+# Regra para o executável
+$(TARGET): $(OBJECTS)
+	@echo "Linkando $(PROG)..."
+	$(CC) $^ $(LDFLAGS) -o $@
 
 # Cria diretórios necessários
 dirs:
