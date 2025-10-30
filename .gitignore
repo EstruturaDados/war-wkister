@@ -5,8 +5,6 @@ war
 *.exe
 
 # Diretórios de build
-obj/
-bin/
 
 # Diretórios VS Code
 .vscode/launch.json
