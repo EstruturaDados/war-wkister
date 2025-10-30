@@ -1,10 +1,11 @@
 # Arquivos compilados
-war
-*.o
+# war # Manter o executável para avaliação
+# *.o  # Manter os objetos para avaliação
 *.out
 *.exe
 
 # Diretórios de build
+# Manter os diretórios bin e obj para avaliação
 
 # Diretórios VS Code
 .vscode/launch.json
